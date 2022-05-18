@@ -8,11 +8,17 @@ terraform {
       source  = "hashicorp/helm"
       version = "2.5.1"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "3.15.0"
+    }
   }
 }
 
-provider "digitalocean" {
-}
+
+provider "cloudflare" {}
+
+provider "digitalocean" {}
 
 provider "helm" {
   alias = "mgmt"
@@ -79,4 +85,24 @@ resource "helm_release" "argocd" {
   depends_on = [
     digitalocean_kubernetes_cluster.this,
   ]
+}
+
+data "digitalocean_droplet" "mgmt" {
+  id = digitalocean_kubernetes_cluster.this["mgmt"].node_pool[0].nodes[0].droplet_id
+}
+
+data "cloudflare_zone" "this" {
+  name = "fsstack.org"
+}
+
+resource "cloudflare_record" "argocd" {
+  zone_id = data.cloudflare_zone.this.zone_id
+  name    = "argocd"
+  value   = data.digitalocean_droplet.mgmt.ipv4_address
+  type    = "A"
+  ttl     = 60
+}
+
+output "argocd_url" {
+  value = "https://${cloudflare_record.argocd.hostname}:30443"
 }
