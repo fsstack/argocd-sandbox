@@ -37,8 +37,9 @@ provider "helm" {
 locals {
   clusters = {
     mgmt = {},
-    dev  = {},
-    prod = {}
+    foo  = {},
+    bar  = {},
+    # baz  = {}
   }
   argocd_values = {
     server = {
