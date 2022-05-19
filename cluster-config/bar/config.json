@@ -1,1 +1,1 @@
-{"cluster":{"address":"https://09e412f9-8709-4d6c-bda6-ae6398e6342b.k8s.ondigitalocean.com","name":"bar"},"node_exporter":{"chart_version":"3.2.0"}}
+{"cluster":{"name":"bar"},"node_exporter":{"chart_version":"3.2.0"}}
