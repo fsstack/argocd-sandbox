@@ -12,9 +12,14 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "3.15.0"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = "2.2.3"
+    }
   }
 }
 
+provider "local" {}
 
 provider "cloudflare" {}
 
@@ -101,6 +106,13 @@ resource "cloudflare_record" "argocd" {
   value   = data.digitalocean_droplet.mgmt.ipv4_address
   type    = "A"
   ttl     = 60
+}
+
+resource "local_file" "kubeconfig" {
+  for_each        = digitalocean_kubernetes_cluster.this
+  filename        = "${path.module}/kubeconfig-${each.key}"
+  content         = each.value.kube_config.0.raw_config
+  file_permission = 0600
 }
 
 output "argocd_url" {
