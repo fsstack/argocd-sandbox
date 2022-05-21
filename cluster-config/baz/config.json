@@ -1,0 +1,1 @@
+{"cluster":{"name":"baz","server":"https://71d42aa6-4ab5-490d-b443-ed52b61083a5.k8s.ondigitalocean.com"},"node_exporter":{"chart_version":"3.2.0"},"prometheus_operator":{"version":"v0.49.0"}}
