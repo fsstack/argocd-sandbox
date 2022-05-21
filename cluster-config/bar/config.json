@@ -1,1 +1,1 @@
-{"cluster":{"name":"bar","server":"https://b17acb97-1aa3-41fc-8f6d-f7c925b8cd65.k8s.ondigitalocean.com"},"node_exporter":{"chart_version":"3.2.0"}}
+{"cluster":{"name":"bar","server":"https://b17acb97-1aa3-41fc-8f6d-f7c925b8cd65.k8s.ondigitalocean.com"},"node_exporter":{"chart_version":"3.2.0"},"prometheus_operator":{"version":"v0.49.0"}}
