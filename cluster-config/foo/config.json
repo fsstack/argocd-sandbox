@@ -1,1 +1,0 @@
-{"cluster":{"name":"foo","server":"https://087a952a-662b-4bab-998f-091e06f7e720.k8s.ondigitalocean.com"},"node_exporter":{"chart_version":"3.2.0"},"prometheus_operator":{"version":"v0.49.0"}}
