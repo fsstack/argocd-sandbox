@@ -41,6 +41,16 @@ locals {
     bar  = {},
     # baz  = {}
   }
+  cluster_configs = {
+    for k, v in digitalocean_kubernetes_cluster.this : k => {
+      cluster = {
+        name = v.name != "mgmt" ? v.name : "in-cluster"
+      }
+      node_exporter = {
+        chart_version = "3.2.0"
+      }
+    }
+  }
   argocd_values = {
     server = {
       service = {
@@ -113,6 +123,13 @@ resource "local_file" "kubeconfig" {
   for_each        = digitalocean_kubernetes_cluster.this
   filename        = "${path.module}/kubeconfig-${each.key}"
   content         = each.value.kube_config.0.raw_config
+  file_permission = 0600
+}
+
+resource "local_file" "cluster_config" {
+  for_each        = local.cluster_configs
+  filename        = "${path.module}/../cluster-config/${each.value.cluster.name}/config.json"
+  content         = jsonencode(each.value)
   file_permission = 0600
 }
 
