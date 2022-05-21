@@ -2,21 +2,26 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: node-exporter
+  namespace: argo-cd
 spec:
   generators:
-    - clusters: {}
+    - git:
+        repoURL: https://github.com/fsstack/argocd-sandbox.git
+        revision: HEAD
+        files:
+          - path: "cluster-config/**/config.json"
   template:
     metadata:
-      name: "{{name}}-node-exporter"
+      name: "{{cluster.name}}-node-exporter"
       namespace: argo-cd
     spec:
       project: default
       source:
         repoURL: https://prometheus-community.github.io/helm-charts
         chart: prometheus-node-exporter
-        targetRevision: 3.2.0
+        targetRevision: "{{node_exporter.chart_version}}"
       destination:
-        server: "{{server}}"
+        server: "{{cluster.server}}"
         namespace: node-exporter
       syncPolicy:
         automated: {}

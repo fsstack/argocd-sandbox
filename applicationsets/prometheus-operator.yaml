@@ -1,27 +1,27 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: node-exporter
+  name: prometheus-operator
+  namespace: argo-cd
 spec:
   generators:
     - git:
         repoURL: https://github.com/fsstack/argocd-sandbox.git
         revision: HEAD
         files:
-        - path: "cluster-config/**/config.json"
+          - path: "cluster-config/**/config.json"
   template:
     metadata:
-      name: "{{cluster.name}}-node-exporter"
+      name: "{{cluster.name}}-prometheus-operator"
       namespace: argo-cd
     spec:
       project: default
       source:
-        repoURL: https://prometheus-community.github.io/helm-charts
-        chart: prometheus-node-exporter
-        targetRevision: "{{node_exporter.chart_version}}"
+        repoURL: https://github.com/fsstack/argocd-sandbox.git
+        path: addons/prometheus-operator-{{prometheus_operator.version}}
       destination:
-        server: "{{cluster.name}}"
-        namespace: node-exporter
+        server: "{{cluster.server}}"
+        namespace: prometheus-operator
       syncPolicy:
         automated: {}
         syncOptions:
