@@ -30,10 +30,22 @@ provider "helm" {
 
 locals {
   clusters = {
-    mgmt = {},
-    foo  = {},
-    bar  = {},
-    # baz  = {}
+    mgmt = {
+      prometheus_operator_version = "v0.49.0"
+      node_exporter_chart_version = "3.0.0"
+    },
+    foo = {
+      prometheus_operator_version = "v0.50.0"
+      node_exporter_chart_version = "3.2.0"
+    },
+    bar = {
+      prometheus_operator_version = "v0.50.0"
+      node_exporter_chart_version = "3.0.0"
+    },
+    # baz  = {
+    #         prometheus_operator_version = "v0.50.0"
+    #   node_exporter_chart_version = "3.2.0"
+    # }
   }
   cluster_configs = {
     for k, v in digitalocean_kubernetes_cluster.this : k => {
@@ -42,10 +54,10 @@ locals {
         server = v.name != "mgmt" ? v.endpoint : "https://kubernetes.default.svc"
       }
       node_exporter = {
-        chart_version = v.name != "mgmt" ? "3.2.0" : "3.0.0"
+        chart_version = local.clusters[v.name].node_exporter_chart_version
       }
       prometheus_operator = {
-        version = v.name != "mgmt" ? "v0.49.0" : "v0.50.0"
+        version = local.clusters[v.name].prometheus_operator_version
       }
     }
   }
