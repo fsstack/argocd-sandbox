@@ -8,10 +8,6 @@ terraform {
       source  = "hashicorp/helm"
       version = "2.5.1"
     }
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "3.15.0"
-    }
     local = {
       source  = "hashicorp/local"
       version = "2.2.3"
@@ -20,8 +16,6 @@ terraform {
 }
 
 provider "local" {}
-
-provider "cloudflare" {}
 
 provider "digitalocean" {}
 
@@ -44,10 +38,14 @@ locals {
   cluster_configs = {
     for k, v in digitalocean_kubernetes_cluster.this : k => {
       cluster = {
-        name = v.name != "mgmt" ? v.name : "in-cluster"
+        name   = v.name != "mgmt" ? v.name : "in-cluster"
+        server = v.name != "mgmt" ? v.endpoint : "https://kubernetes.default.svc"
       }
       node_exporter = {
-        chart_version = "3.2.0"
+        chart_version = v.name != "mgmt" ? "3.2.0" : "3.0.0"
+      }
+      prometheus_operator = {
+        version = v.name != "mgmt" ? "v0.49.0" : "v0.50.0"
       }
     }
   }
@@ -56,6 +54,25 @@ locals {
       service = {
         type = "NodePort"
       }
+      additionalApplications = [
+        {
+          name      = "parent-app"
+          namespace = "argo-cd"
+          project   = "default"
+          source = {
+            repoURL        = "https://github.com/fsstack/argocd-sandbox.git"
+            targetRevision = "HEAD"
+            path           = "applicationsets"
+          }
+          destination = {
+            server    = "https://kubernetes.default.svc"
+            namespace = "argo-cd"
+          }
+          syncPolicy = {
+            automated = {}
+          }
+        }
+      ]
     }
     configs = {
       secret = {
@@ -107,18 +124,6 @@ data "digitalocean_droplet" "mgmt" {
   id = digitalocean_kubernetes_cluster.this["mgmt"].node_pool[0].nodes[0].droplet_id
 }
 
-data "cloudflare_zone" "this" {
-  name = "fsstack.org"
-}
-
-resource "cloudflare_record" "argocd" {
-  zone_id = data.cloudflare_zone.this.zone_id
-  name    = "argocd"
-  value   = data.digitalocean_droplet.mgmt.ipv4_address
-  type    = "A"
-  ttl     = 60
-}
-
 resource "local_file" "kubeconfig" {
   for_each        = digitalocean_kubernetes_cluster.this
   filename        = "${path.module}/kubeconfig-${each.key}"
@@ -131,8 +136,13 @@ resource "local_file" "cluster_config" {
   filename        = "${path.module}/../cluster-config/${each.value.cluster.name}/config.json"
   content         = jsonencode(each.value)
   file_permission = 0600
+  lifecycle {
+    ignore_changes = [
+      content
+    ]
+  }
 }
 
 output "argocd_url" {
-  value = "https://${cloudflare_record.argocd.hostname}:30443"
+  value = "https://${data.digitalocean_droplet.mgmt.ipv4_address}:30443"
 }
