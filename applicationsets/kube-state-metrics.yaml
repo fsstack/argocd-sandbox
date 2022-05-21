@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: prometheus-operator
+  name: kube-state-metrics
   namespace: argo-cd
 spec:
   generators:
@@ -12,18 +12,22 @@ spec:
           - path: "cluster-config/**/config.json"
   template:
     metadata:
-      name: "{{cluster.name}}-prometheus-operator"
+      name: "{{cluster.name}}-kube-state-metrics"
       namespace: argo-cd
-      annotations:
-        argocd.argoproj.io/sync-wave: "-100"
     spec:
       project: default
       source:
-        repoURL: https://github.com/fsstack/argocd-sandbox.git
-        path: addons/prometheus-operator-{{prometheus_operator.version}}
+        repoURL: https://prometheus-community.github.io/helm-charts
+        chart: kube-state-metrics
+        targetRevision: 4.7.0
+        helm:
+          values: |
+            prometheus:
+              monitor:
+                enabled: true
       destination:
         server: "{{cluster.server}}"
-        namespace: prometheus-operator
+        namespace: kube-state-metrics
       syncPolicy:
         automated: {}
         syncOptions:

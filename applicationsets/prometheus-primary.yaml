@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: prometheus-operator
+  name: prometheus-primary
   namespace: argo-cd
 spec:
   generators:
@@ -12,18 +12,16 @@ spec:
           - path: "cluster-config/**/config.json"
   template:
     metadata:
-      name: "{{cluster.name}}-prometheus-operator"
+      name: "{{cluster.name}}-prometheus-primary"
       namespace: argo-cd
-      annotations:
-        argocd.argoproj.io/sync-wave: "-100"
     spec:
       project: default
       source:
         repoURL: https://github.com/fsstack/argocd-sandbox.git
-        path: addons/prometheus-operator-{{prometheus_operator.version}}
+        path: addons/prometheus-primary
       destination:
         server: "{{cluster.server}}"
-        namespace: prometheus-operator
+        namespace: prometheus-primary
       syncPolicy:
         automated: {}
         syncOptions:
