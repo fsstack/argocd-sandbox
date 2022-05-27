@@ -5,23 +5,18 @@ metadata:
   namespace: argo-cd
 spec:
   generators:
-    - git:
-        repoURL: https://github.com/fsstack/argocd-sandbox.git
-        revision: HEAD
-        files:
-          - path: "cluster-config/**/config.json"
+    - clusters: {}
   template:
     metadata:
-      name: "{{cluster.name}}-node-exporter"
+      name: "{{name}}-node-exporter"
       namespace: argo-cd
     spec:
       project: default
       source:
         repoURL: https://prometheus-community.github.io/helm-charts
         chart: prometheus-node-exporter
-        targetRevision: "{{node_exporter.chart_version}}"
       destination:
-        server: "{{cluster.server}}"
+        server: "{{server}}"
         namespace: node-exporter
       syncPolicy:
         automated: {}
